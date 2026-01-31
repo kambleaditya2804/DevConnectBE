@@ -26,4 +26,4 @@ DevConnect is a **MERN stack** platform for developers to **connect and collabor
 - **Feed**: `/user/feed?page=1&limit=10`  
 
 ## Frontend Integration
-🔗 [DevConnect Frontend](https://github.com/AdityaKambleV/DevConnect-frontend)
+🔗 [DevConnect Frontend](https://github.com/AdityaKambleV/DevConnectFE)
