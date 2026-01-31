@@ -1,32 +1,34 @@
-const express = require("express");
+import express from "express";
+
+import userAuth from "../Middlewares/auth.js";
+import ConnectionRequestModel from "../Models/connectionRequest.js"; // corrected path
+import User from "../Models/user.js";
+
 const userRouter = express.Router();
-const { userAuth } = require("../Middlewares/auth");
-const { ConnectionRequestModel } = require("../Models/connectionRequest");
-const User = require("../Models/user");
 
 const USER_SAFE_DATA = "firstName lastName photoURL about age gender skills";
 
+// Get received connection requests
 userRouter.get("/user/requests/recieved", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
+
     const connectionRequests = await ConnectionRequestModel.find({
       toUserId: loggedInUser._id,
       status: "intrested",
     }).populate("fromUserId", USER_SAFE_DATA);
-    if (connectionRequests) {
-      return res.status(200).json({
-        connectionRequests,
-      });
-    }
+
+    res.status(200).json({ connectionRequests });
   } catch (error) {
-    res.status(400).send("ERROR:" + error.message);
+    res.status(400).send("ERROR: " + error.message);
   }
 });
 
+// Get all connections
 userRouter.get("/user/connections", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
-    
+
     const connectionRequests = await ConnectionRequestModel.find({
       $or: [
         { toUserId: loggedInUser._id, status: "accepted" },
@@ -35,20 +37,19 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
     }).populate("fromUserId toUserId", USER_SAFE_DATA);
 
     const data = connectionRequests.map((row) => {
-      if (row.fromUserId._id.toString() == loggedInUser._id.toString()) {
+      if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
         return row.toUserId;
       }
       return row.fromUserId;
     });
 
-    res.status(200).json({
-      data,
-    });
+    res.status(200).json({ data });
   } catch (error) {
-    res.status(400).send("ERROR :" + error.message);
+    res.status(400).send("ERROR: " + error.message);
   }
 });
 
+// Get feed users
 userRouter.get("/user/feed", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
@@ -59,7 +60,10 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
     const skip = (page - 1) * limit;
 
     const connectionRequest = await ConnectionRequestModel.find({
-      $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
+      $or: [
+        { fromUserId: loggedInUser._id },
+        { toUserId: loggedInUser._id },
+      ],
     }).select("fromUserId toUserId");
 
     const hideUsersFromFeed = new Set();
@@ -83,4 +87,5 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
     res.status(400).send("ERROR: " + error.message);
   }
 });
-module.exports = userRouter;
+
+export default userRouter;

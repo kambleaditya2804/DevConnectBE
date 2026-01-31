@@ -1,6 +1,5 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-//Connection request schema
 const connectionRequestSchema = new mongoose.Schema(
   {
     fromUserId: {
@@ -22,28 +21,25 @@ const connectionRequestSchema = new mongoose.Schema(
       },
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-//compound index
+// compound index
 connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 });
 
+// pre-save validation
 connectionRequestSchema.pre("save", function (next) {
   const connectionRequest = this;
 
-  //chekc is fromUserId is same as toUserId
   if (connectionRequest.fromUserId.equals(connectionRequest.toUserId)) {
-    throw new Error("You Cannot send connection request to yourself");
+    throw new Error("You cannot send a connection request to yourself");
   }
   next();
 });
 
-const ConnectionRequestModel = new mongoose.model(
+const ConnectionRequestModel = mongoose.model(
   "ConnectionRequest",
   connectionRequestSchema
 );
-module.exports = {
-  ConnectionRequestModel,
-};
+
+export default ConnectionRequestModel;
