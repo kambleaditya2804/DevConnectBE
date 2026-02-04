@@ -1,8 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config();
-
-// debug check (remove later)
-console.log("ENV CHECK:", process.env.MONGO_URI, process.env.JWT_SECRET);
+import "./src/Config/env.js"; // MUST be first
 
 import express from "express";
 import cors from "cors";
@@ -14,6 +10,7 @@ import authRouter from "./src/routes/auth.js";
 import profileRouter from "./src/routes/profile.js";
 import requestRouter from "./src/routes/request.js";
 import userRouter from "./src/routes/user.js";
+import paymentRouter from "./src/routes/payment.js";
 
 const app = express();
 
@@ -32,6 +29,7 @@ app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
+app.use("/", paymentRouter);
 
 // DB → Server
 connectDB()
