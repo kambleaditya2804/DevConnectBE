@@ -16,6 +16,7 @@
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^16.6.1",
     "env": "^0.0.2",
     "express": "^4.21.1",
@@ -23,6 +24,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.7.2",
     "razorpay": "^2.9.6",
+    "socket.io": "^4.8.3",
     "validator": "^13.12.0"
   }
 }
