@@ -20,7 +20,6 @@ const paymentSchema = new mongoose.Schema(
         },
         amount: {
             type: Number,
-            
         },
         currency: {
             type: String,

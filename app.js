@@ -9,13 +9,16 @@ import requestRouter from "./src/routes/request.js";
 import userRouter from "./src/routes/user.js";
 import paymentRouter from "./src/routes/payment.js";
 import http from "http";
+import chatRouter from "./src/routes/chat.js";
 import initalizeSocket from "./src/utils/socket.js";
 const app = express();
 
 app.use(
   cors({
     origin: "http://localhost:5173",
-    withCredentials: true,
+    credentials:true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
 
@@ -28,6 +31,7 @@ app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
 app.use("/", paymentRouter);
+app.use("/", chatRouter);
 
 // DB → Server
 const server = http.createServer(app);
@@ -42,5 +46,7 @@ connectDB()
   .catch((err) => {
     console.error("DB connection failed:", err);
   });
+
+  
 
   

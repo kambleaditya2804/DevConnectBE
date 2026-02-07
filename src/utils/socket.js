@@ -1,50 +1,8 @@
-
-// import crypto from "crypto";
-// import {socket} from "socket.io"
-
-// const getRoomId = ({ userId, targetUserId }) => {
-//   return crypto
-//     .createHash("sha256")
-//     .update([userId, targetUserId].sort().join("_"))
-//     .digest("hex");
-// };
-
-// const initializeSocket = (server) => {
-//   const io = socket(server, {
-//     cors: {
-//       origin: "http://localhost:5173",
-//       Credential: true,
-//     },
-//   });
-
-//   io.on("connection", (socket) => {
-
-//     socket.on("joinChat", ({ userId, targetUserId }) => {
-//       const roomId = getRoomId({ userId, targetUserId });
-//       socket.join(roomId);
-
-//     });  // when a component renders initially it will emit the joinChat event with the userId and targetUserId, 
-//     // then we will create a unique roomId using the getRoomId function and make the socket join that room.
-
-//     socket.on("sendMessage", ({ firstName, userId, targetUserId, text }) => {
-//       const roomId = getRoomId({ userId, targetUserId });
-//       console.log(firstName+" "+text )
-//       io.to(roomId).emit("messageReceived", { firstName, text }); //sending a recieved message to particular room so that reciever and sender both can see the message in their chat window
-//     });
-
-//     socket.on("disconnect", () => {
-
-//     })
-//   });
-// };
-
-// export default initializeSocket;
-
-
-
 import crypto from "crypto";
-import { Server } from "socket.io"; // Fix 1: Correct import
-
+import { Server } from "socket.io";
+import Chat from "../Models/chat.js"; // Ensure .js extension if using ES Modules
+import userAuth from "../Middlewares/auth.js";
+import ConnectionRequestModel from "../Models/connectionRequest.js";
 const getRoomId = ({ userId, targetUserId }) => {
   return crypto
     .createHash("sha256")
@@ -53,10 +11,10 @@ const getRoomId = ({ userId, targetUserId }) => {
 };
 
 const initializeSocket = (server) => {
-  const io = new Server(server, { // Fix 2: Use 'new Server'
+  const io = new Server(server, {
     cors: {
       origin: "http://localhost:5173",
-      credentials: true, // Fix 3: lowercase 'c' and plural 's'
+      credentials: true,
     },
   });
 
@@ -66,10 +24,54 @@ const initializeSocket = (server) => {
       socket.join(roomId);
     });
 
-    socket.on("sendMessage", ({ firstName, userId, targetUserId, text }) => {
-      const roomId = getRoomId({ userId, targetUserId });
-      console.log(firstName + " says: " + text);
-      io.to(roomId).emit("messageReceived", { firstName, text });
+    socket.on("sendMessage", async ({ firstName, lastName, userId, targetUserId, text }) => {
+      try {
+        const roomId = getRoomId({ userId, targetUserId });
+
+//check that they are connections before sending the messages
+
+const isfriend= ConnectionRequestModel.findOne({
+$or:[
+  {
+    fromUserId:userId,
+    toUserId:targetUserId,
+    status:"accepted"
+  },
+   {
+    fromUserId:targetUserId,
+    toUserId:userId,
+    status:"accepted"
+  }
+]
+})
+
+        // 1. Database Update
+        let chat = await Chat.findOne({
+          participants: { $all: [userId, targetUserId] }
+        });
+
+        if (!chat) {
+          chat = new Chat({
+            participants: [userId, targetUserId],
+            messages: [],
+          });
+        }
+
+        chat.messages.push({ 
+            senderId: userId, 
+            text 
+        });
+        
+        await chat.save();
+
+        // 2. Real-time Broadcast
+        // Always emit AFTER saving to DB or use a background promise
+        io.to(roomId).emit("messageReceived", { firstName, lastName, text });
+
+      } catch (err) {
+        console.error("Error saving message to database:", err);
+        // Optional: emit an error event back to the sender
+      }
     });
 
     socket.on("disconnect", () => {
