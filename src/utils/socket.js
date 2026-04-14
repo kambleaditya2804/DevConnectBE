@@ -28,23 +28,23 @@ const initializeSocket = (server) => {
       try {
         const roomId = getRoomId({ userId, targetUserId });
 
-//check that they are connections before sending the messages
+        //check that they are connections before sending the messages
 
-const isfriend= ConnectionRequestModel.findOne({
-$or:[
-  {
-    fromUserId:userId,
-    toUserId:targetUserId,
-    status:"accepted"
-  },
-   {
-    fromUserId:targetUserId,
-    toUserId:userId,
-    status:"accepted"
-  }
-]
-})
-
+        const isfriend = await ConnectionRequestModel.findOne({
+          $or: [
+            {
+              fromUserId: userId,
+              toUserId: targetUserId,
+              status: "accepted"
+            },
+            {
+              fromUserId: targetUserId,
+              toUserId: userId,
+              status: "accepted"
+            }
+          ]
+        })
+        if (!isfriend) return socket.emit("error", { message: "Not connected" })
         // 1. Database Update
         let chat = await Chat.findOne({
           participants: { $all: [userId, targetUserId] }
@@ -57,11 +57,11 @@ $or:[
           });
         }
 
-        chat.messages.push({ 
-            senderId: userId, 
-            text 
+        chat.messages.push({
+          senderId: userId,
+          text
         });
-        
+
         await chat.save();
 
         // 2. Real-time Broadcast

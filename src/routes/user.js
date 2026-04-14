@@ -9,7 +9,7 @@ const userRouter = express.Router();
 const USER_SAFE_DATA = "firstName lastName photoURL about age gender skills";
 
 // Get received connection requests
-userRouter.get("/user/requests/recieved", userAuth, async (req, res) => {
+userRouter.get("/user/requests/received", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
 

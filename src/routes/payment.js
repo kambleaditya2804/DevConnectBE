@@ -8,20 +8,21 @@ import User from '../Models/user.js';
 import crypto from "crypto";
 
 const paymentRouter = express.Router();
-paymentRouter.post("/payment/webhook", async (req, res) => {
+// before this step u first need to go to the razorpay website and create a webhook
+paymentRouter.post("/payment/webhook", async (req, res) => { //this api will be hit by razorpay server
   try {
     const signature = req.headers["x-razorpay-signature"];
 
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET)
-      .update(req.body)
-      .digest("hex");
+      .update(req.body) // raw webhook payload sent by Razorpay (same thing is used by razorpay to sign)
+      .digest("hex");  //Converts the hash into a hex string .This format matches the signature sent in the header
 
     if (signature !== expectedSignature) {
       return res.status(400).json({ message: "Invalid webhook signature" });
     }
 
-    const event = JSON.parse(req.body.toString());
+    const event = JSON.parse(req.body.toString());  // buffer or raw data is converted into string
 
     if (event.event === "payment.captured") {
       const paymentDetails = event.payload.payment.entity;
@@ -62,7 +63,8 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
   }
 });
 
-//when user clicks on buy now button, this route will be hit and it will create an order in razorpay and return the order details to the frontend
+//when user clicks on buy now button, this route will be hit and it will create an order in razorpay
+//and return the order details to the frontend
 
 paymentRouter.post('/payment/create', userAuth, async (req, res) => {
   try {
@@ -87,8 +89,8 @@ paymentRouter.post('/payment/create', userAuth, async (req, res) => {
       }
     });
 
-    //here we have recieved the ordrerid and other details from razorpay
-    // once order is created(means recieved) , save the order details in the database
+    //here we have received the ordrerid and other details from razorpay
+    // once order is created(means received) , save the order details in the database
 
     console.log("Order created:", order);
 
@@ -110,7 +112,7 @@ paymentRouter.post('/payment/create', userAuth, async (req, res) => {
       ...savedPayment.toJSON(),
       keyId: process.env.RAZORPAY_KEY_ID
     });
-// keyid is sent to open checkout , without keyid Razorpay Checkout fails to initialize ,Payment UI won’t open
+    // keyid is sent to open checkout , without keyid Razorpay Checkout fails to initialize ,Payment UI won’t open
 
   } catch (e) {
     console.error("Payment creation failed:", e);
