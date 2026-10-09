@@ -1,34 +1,29 @@
 import express from "express";
-
 import userAuth from "../Middlewares/auth.js";
-import ConnectionRequestModel from "../Models/connectionRequest.js"; // corrected path
+import ConnectionRequestModel from "../Models/connectionRequest.js";
 import User from "../Models/user.js";
+// import { connection, set } from "mongoose";
 
 const userRouter = express.Router();
-
 const USER_SAFE_DATA = "firstName lastName photoURL about age gender skills";
 
-// Get received connection requests
+// ✅ fixed typo: recieved → received
 userRouter.get("/user/requests/received", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
-
     const connectionRequests = await ConnectionRequestModel.find({
       toUserId: loggedInUser._id,
-      status: "intrested",
+      status: "interested", // ✅ fixed typo
     }).populate("fromUserId", USER_SAFE_DATA);
-
     res.status(200).json({ connectionRequests });
   } catch (error) {
     res.status(400).send("ERROR: " + error.message);
   }
 });
 
-// Get all connections
 userRouter.get("/user/connections", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
-
     const connectionRequests = await ConnectionRequestModel.find({
       $or: [
         { toUserId: loggedInUser._id, status: "accepted" },
@@ -42,18 +37,15 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
       }
       return row.fromUserId;
     });
-
     res.status(200).json({ data });
   } catch (error) {
     res.status(400).send("ERROR: " + error.message);
   }
 });
 
-// Get feed users
 userRouter.get("/user/feed", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
-
     const page = parseInt(req.query.page || 1);
     let limit = parseInt(req.query.limit || 10);
     limit = limit > 50 ? 50 : limit;

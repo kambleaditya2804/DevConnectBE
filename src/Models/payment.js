@@ -22,12 +22,10 @@ const paymentSchema = new mongoose.Schema(
             type: Number,
         },
         currency: {
-            type: String,
-            
+            type: String,  
         },
         receipt: {
             type: String,
-            
         }
         ,
         notes: {

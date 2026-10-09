@@ -15,9 +15,9 @@ chatRouter.get('/chat/:targetUserId', userAuth, async (req, res) => {
         }).populate({
             path: 'messages.senderId',
             select: "firstName lastName"
-        });
+        }); // populating the senderId to get the firstName and lastName of the sender
 
-        // If no chat exists, initialize a new one with the participants
+        // If no chat exists, initialize a new one with the participants . ex.person chatting first time 
         if (!chat) {
             chat = new Chat({
                 participants: [userId, targetUserId],

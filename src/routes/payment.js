@@ -123,13 +123,15 @@ paymentRouter.post('/payment/create', userAuth, async (req, res) => {
 //this api should be called after the payment is successful to verify if the user is premium or not
 //add handler function in options of razorpay in frontend to call this api
 
-paymentRouter.get('/premium/verify', userAuth, (req, res) => {
+paymentRouter.get("/premium/verify", userAuth, (req, res) => {
   const user = req.user.toJSON();
   if (user.isPremium) {
-    res.status(200).json({ isPremium: true, membershipType: user.membershipType });
-
+    return res.status(200).json({ // ✅ added return
+      isPremium: true,
+      membershipType: user.membershipType,
+    });
   }
-  return res.json({ isPremium: false });
-})
+  return res.status(200).json({ isPremium: false }); // ✅ consistent return
+});
 
 export default paymentRouter;
