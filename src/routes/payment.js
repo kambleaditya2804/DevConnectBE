@@ -11,7 +11,7 @@ const paymentRouter = express.Router();
 // before this step u first need to go to the razorpay website and create a webhook
 paymentRouter.post("/payment/webhook", async (req, res) => { //this api will be hit by razorpay server
   try {
-    const signature = req.headers("x-razorpay-signature"); // this is the signature sent by razorpay in the header of the request
+    const signature = req.headers["x-razorpay-signature"]; // this is the signature sent by razorpay in the header of the request
 
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET)
