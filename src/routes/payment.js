@@ -11,7 +11,7 @@ const paymentRouter = express.Router();
 // before this step u first need to go to the razorpay website and create a webhook
 paymentRouter.post("/payment/webhook", async (req, res) => { //this api will be hit by razorpay server
   try {
-    const signature = req.headers["x-razorpay-signature"];
+    const signature = req.headers("x-razorpay-signature"); // this is the signature sent by razorpay in the header of the request
 
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET)
@@ -37,7 +37,9 @@ paymentRouter.post("/payment/webhook", async (req, res) => { //this api will be 
 
       payment.paymentId = paymentDetails.id;
       payment.status = paymentDetails.status;
-      await payment.save();
+      await payment.save(); // update the payment details in the database
+
+      // Update the user's premium status and membership type 
 
       const user = await User.findById(payment.userId);
 
@@ -47,11 +49,11 @@ paymentRouter.post("/payment/webhook", async (req, res) => { //this api will be 
     }
 
     if (event.event === "payment.failed") {
-      const paymentDetails = event.payload.payment.entity;
+      const paymentDetails = event.payload.payment.entity;// this is the payment object sent by razorpay in case of failed payment
 
       await Payment.findOneAndUpdate(
         { orderId: paymentDetails.order_id },
-        { status: "failed" }
+        { status: "failed" }// update the payment status to failed in the database
       );
     }
 
@@ -105,7 +107,7 @@ paymentRouter.post('/payment/create', userAuth, async (req, res) => {
       //You add meaning: Who paid? For what? Which plan?
     });
 
-    const savedPayment = await payment.save();
+    const savedPayment = await payment.save(); // save the payment details in the database
 
     // send the order details to the frontend
     res.status(201).json({
@@ -119,6 +121,8 @@ paymentRouter.post('/payment/create', userAuth, async (req, res) => {
     res.status(500).json({ message: "Payment creation failed" });
   }
 });
+
+
 
 //this api should be called after the payment is successful to verify if the user is premium or not
 //add handler function in options of razorpay in frontend to call this api

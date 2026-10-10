@@ -7,6 +7,13 @@ import { validateSignupData } from "../utils/validation.js";
 
 const authRouter = express.Router();
 
+// Cross-site cookies (frontend and backend on different onrender.com subdomains)
+// need sameSite "none" + secure. Locally (http://localhost) keep the defaults.
+const isHttpsDeploy = (process.env.FRONTEND_URL || "").startsWith("https");
+const cookieOptions = isHttpsDeploy
+  ? { httpOnly: true, secure: true, sameSite: "none" }
+  : { httpOnly: true };
+
 // signup
 authRouter.post("/signup", async (req, res) => {
   try {
@@ -24,7 +31,7 @@ authRouter.post("/signup", async (req, res) => {
     const savedUser = await user.save();
     const token = await savedUser.getjwt();
 
-    res.cookie("token", token, { expires: new Date(Date.now() + 8 * 3600000), httpOnly: true });
+    res.cookie("token", token, { expires: new Date(Date.now() + 8 * 3600000), ...cookieOptions });
     res.status(200).json({ message: "User added successfully", data: savedUser });
   } catch (err) {
     res.status(400).send("ERROR: " + err.message);
@@ -45,7 +52,7 @@ authRouter.post("/login", async (req, res) => {
     if (!isValidPassword) throw new Error("Invalid Credentials");
 
     const token = await user.getjwt();
-    res.cookie("token", token, { expires: new Date(Date.now() + 8 * 3600000), httpOnly: true });
+    res.cookie("token", token, { expires: new Date(Date.now() + 8 * 3600000), ...cookieOptions });
     res.status(200).json({ user });
   } catch (err) {
     res.status(400).send("ERROR: " + err.message);
@@ -54,7 +61,7 @@ authRouter.post("/login", async (req, res) => {
 
 // logout
 authRouter.post("/logout", async (req, res) => {
-  res.cookie("token", null, { expires: new Date(Date.now()), httpOnly: true }).send("User Logged out successfully");
+  res.cookie("token", null, { expires: new Date(Date.now()), ...cookieOptions }).send("User Logged out successfully");
 });
 
 export default authRouter;

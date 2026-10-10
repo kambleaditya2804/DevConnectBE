@@ -76,8 +76,8 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
 
     res.send(users);
   } catch (error) {
-    res.status(400).send("ERROR: " + error.message);
-  }
+     res.status(400).send("ERROR: " + error.message);
+   }
 });
 
 export default userRouter;

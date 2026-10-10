@@ -57,12 +57,12 @@ const initializeSocket = (server) => {
         chat.messages.push({ senderId: userId, text });
         await chat.save();
 
-        io.to(roomId).emit("messageReceived", { firstName, lastName, text });//look we are emitting the message to the room, 
+         io.to(roomId).emit("messageReceived", { senderId: userId, firstName, lastName, text });//look we are emitting the message to the room, 
         //so that all the users in the room can receive the message, and we are sending the firstName, lastName, and text of 
         // the message to the client, so that the client can display the message in the chat window
       } catch (err) {
         console.error("Error saving message:", err);
-        socket.emit("error", { message: "Message could not be sent" });
+        socket.emit("chatError", { message: "Message could not be sent" });
       }
     });
 
